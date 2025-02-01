@@ -1,4 +1,6 @@
 import express from "express";
+
+import productRouter from "./routes/products/index";
 import dotenv from "dotenv";
 const app = express();
 
@@ -6,9 +8,12 @@ dotenv.config();
 
 const port = process.env.PORT;
 app.get("/", (req, res) => {
-	res.send("hello worlddd dotenv");
+	res.send("Hello Prashant");
 });
 
+app.use("/products", productRouter);
+
+// Listen Port
 app.listen(port, () => {
 	console.log(`example app listening on port  ${port}`);
 });
