@@ -1,6 +1,7 @@
 import express, { json, urlencoded } from "express";
 
 import productRouter from "./routes/products/index";
+import authRouter from "./routes/auth/index";
 import dotenv from "dotenv";
 const app = express();
 
@@ -15,6 +16,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/products", productRouter);
+app.use("/auth", authRouter);
 
 // Listen Port
 app.listen(port, () => {

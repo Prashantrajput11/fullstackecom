@@ -17,7 +17,8 @@ import {
 } from "../../db/productsSchema";
 
 const router = Router();
-
+// Consolas, 'Courier New', monospace
+// FiraCode;
 // Product endpoints
 
 // api listing
