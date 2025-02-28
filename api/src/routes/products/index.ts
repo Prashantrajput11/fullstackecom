@@ -5,8 +5,8 @@ import {
 	deleteProduct,
 	updateProduct,
 	createProduct,
-} from "./productsController";
-import { validateData } from "../../middlewares/validationMiddleware";
+} from "./productsController.js";
+import { validateData } from "../../middlewares/validationMiddleware.js";
 
 import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
@@ -14,8 +14,8 @@ import { createInsertSchema } from "drizzle-zod";
 import {
 	createProductSchema,
 	updateProductSchema,
-} from "../../db/productsSchema";
-import { verifySeller, verifyToken } from "../../middlewares/verifyToken";
+} from "../../db/productsSchema.js";
+import { verifySeller, verifyToken } from "../../middlewares/verifyToken.js";
 
 const router = Router();
 // Consolas, 'Courier New', monospace

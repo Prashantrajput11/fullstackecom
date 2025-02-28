@@ -1,7 +1,7 @@
 import express, { json, urlencoded } from "express";
 
-import productRouter from "./routes/products/index";
-import authRouter from "./routes/auth/index";
+import productRouter from "./routes/products/index.js";
+import authRouter from "./routes/auth/index.js";
 import dotenv from "dotenv";
 const app = express();
 

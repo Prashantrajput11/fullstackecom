@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { validateData } from "../../middlewares/validationMiddleware";
+import { validateData } from "../../middlewares/validationMiddleware.js";
 import {
 	createUserSchema,
 	loginSchema,
 	usersTable,
-} from "../../db/usersSchema";
+} from "../../db/usersSchema.js";
 import bcrypt from "bcryptjs";
-import { db } from "../../db/index";
+import { db } from "../../db/index.js";
 import { eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 
@@ -39,8 +39,6 @@ router.post("/login", validateData(loginSchema), async (req, res) => {
 	try {
 		const { email, password } = req.cleanBody;
 
-		// check if user exist or not, if not show error message
-
 		// Check if user exists
 		const [user] = await db
 			.select()
@@ -50,30 +48,28 @@ router.post("/login", validateData(loginSchema), async (req, res) => {
 		// If no user found with this email
 		if (!user) {
 			res.status(401).json({ error: "Invalid credentials" });
-
 			return;
 		}
 
 		// User exists, now compare passwords
-		// IMPORTANT: bcrypt.compare takes (plainTextPassword, hashedPassword),
-		// so in this case user.password is hashedpasowrd
 		const matched = await bcrypt.compare(password, user.password);
 
 		if (!matched) {
 			res.status(401).json({ error: "Invalid credentials" });
 			return;
 		}
-		//create a jwt token
 
+		// Create a JWT token
 		const token = jwt.sign(
 			{ userId: user.id, role: user.role },
 			"your-secret",
 			{ expiresIn: "30d" }
 		);
-		delete user.password;
-		res.status(201).json({ token, user });
 
-		// res.send(200);
+		// Use object destructuring to create a new object without the password
+		const { password: _, ...userWithoutPassword } = user;
+
+		res.status(201).json({ token, user: userWithoutPassword });
 	} catch (error) {
 		res.status(500).json({});
 	}
