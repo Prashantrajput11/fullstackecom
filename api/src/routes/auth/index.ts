@@ -8,6 +8,7 @@ import {
 import bcrypt from "bcryptjs";
 import { db } from "../../db/index";
 import { eq } from "drizzle-orm";
+import jwt from "jsonwebtoken";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.post("/register", validateData(createUserSchema), async (req, res) => {
 			})
 			.returning();
 
+		// remove password
 		const { password: pass, ...userWithoutPassword } = user;
 
 		//send status and json
@@ -33,42 +35,48 @@ router.post("/register", validateData(createUserSchema), async (req, res) => {
 });
 
 // Login
-// router.post("/login", validateData(loginSchema), async (req, res) => {
-// 	try {
-// 		const { email, password } = req.cleanBody;
+router.post("/login", validateData(loginSchema), async (req, res) => {
+	try {
+		const { email, password } = req.cleanBody;
 
-// 		// check if user exist or not, if not show error message
+		// check if user exist or not, if not show error message
 
-// 		// Check if user exists
-// 		const [user] = await db
-// 			.select()
-// 			.from(usersTable)
-// 			.where(eq(usersTable.email, email))
-// 			.limit(1);
+		// Check if user exists
+		const [user] = await db
+			.select()
+			.from(usersTable)
+			.where(eq(usersTable.email, email));
 
-// 		// If no user found with this email
-// 		if (!user) {
-// 			res.status(401).json({ error: "Invalid credentials" });
+		// If no user found with this email
+		if (!user) {
+			res.status(401).json({ error: "Invalid credentials" });
 
-// 			return;
-// 		}
+			return;
+		}
 
-// 		const hashedPassword = await bcrypt.hash(password, 10);
+		// User exists, now compare passwords
+		// IMPORTANT: bcrypt.compare takes (plainTextPassword, hashedPassword),
+		// so in this case user.password is hashedpasowrd
+		const matched = await bcrypt.compare(password, user.password);
 
-// 		// User exists, now compare passwords
-// 		const match = await bcrypt.compare(user.password, hashedPassword);
+		if (!matched) {
+			res.status(401).json({ error: "Invalid credentials" });
+			return;
+		}
+		//create a jwt token
 
-// 		if (!match) {
-// 			res.status(401).json({ error: "Invalid credentials" });
-// 			return;
-// 		} else {
-// 			//create a jwt token
-// 		}
+		const token = jwt.sign(
+			{ userId: user.id, role: user.role },
+			"your-secret",
+			{ expiresIn: "30d" }
+		);
+		delete user.password;
+		res.status(201).json({ token, user });
 
-// 		// res.send(200);
-// 	} catch (error) {
-// 		res.status(500).json({});
-// 	}
-// });
+		// res.send(200);
+	} catch (error) {
+		res.status(500).json({});
+	}
+});
 
 export default router;
