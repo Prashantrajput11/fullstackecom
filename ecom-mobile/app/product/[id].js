@@ -7,29 +7,62 @@ import {
 	ScrollView,
 	SafeAreaView,
 	StatusBar,
+	ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import products from "../../assets/products.json";
+import { fetchProductById } from "../../services/product";
+import { useQuery } from "@tanstack/react-query";
 
 const ProductDetailsScreen = () => {
 	const { id } = useLocalSearchParams();
 	const router = useRouter();
-	const productItem = products.find((prod) => prod.id === Number(id));
 
-	if (!productItem) {
+	console.log("id", id);
+
+	const {
+		data: product,
+		isLoading,
+		error,
+	} = useQuery({
+		queryKey: ["products", id],
+		queryFn: () => fetchProductById(Number(id)),
+		staleTime: 1000 * 60 * 5, // Cache data for 5 minutes
+	});
+
+	console.log("prod", product);
+
+	if (isLoading) {
 		return (
-			<SafeAreaView style={styles.errorContainer}>
-				<Text style={styles.errorText}>Product not found</Text>
-				<TouchableOpacity
-					style={styles.backButton}
-					onPress={() => router.back()}
-				>
-					<Text style={styles.backButtonText}>Go Back</Text>
-				</TouchableOpacity>
-			</SafeAreaView>
+			<View style={styles.loadingContainer}>
+				<ActivityIndicator size="large" color="#000" />
+			</View>
 		);
 	}
+
+	if (error) {
+		return (
+			<View style={styles.errorContainer}>
+				<Text style={styles.errorText}>Error fetching products</Text>
+			</View>
+		);
+	}
+	// const product = products.find((prod) => prod.id === Number(id));
+
+	// if (!product) {
+	// 	return (
+	// 		<SafeAreaView style={styles.errorContainer}>
+	// 			<Text style={styles.errorText}>Product not found</Text>
+	// 			<TouchableOpacity
+	// 				style={styles.backButton}
+	// 				onPress={() => router.back()}
+	// 			>
+	// 				<Text style={styles.backButtonText}>Go Back</Text>
+	// 			</TouchableOpacity>
+	// 		</SafeAreaView>
+	// 	);
+	// }
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
@@ -51,33 +84,32 @@ const ProductDetailsScreen = () => {
 
 			<ScrollView style={styles.scrollView}>
 				<View style={styles.imageContainer}>
-					<Image source={{ uri: productItem.image }} style={styles.image} />
+					<Image source={{ uri: product.image }} style={styles.image} />
 				</View>
 
 				<View style={styles.infoContainer}>
 					<View style={styles.nameRow}>
-						<Text style={styles.name}>{productItem.name}</Text>
-						<Text style={styles.price}>${productItem.price.toFixed(2)}</Text>
+						<Text style={styles.name}>{product.name}</Text>
+						<Text style={styles.price}>${product.price.toFixed(2)}</Text>
 					</View>
 
-					{productItem.rating && (
+					{product.rating && (
 						<View style={styles.ratingContainer}>
 							{[1, 2, 3, 4, 5].map((star) => (
 								<Ionicons
 									key={star}
-									name={star <= productItem.rating ? "star" : "star-outline"}
+									name={star <= product.rating ? "star" : "star-outline"}
 									size={18}
 									color="#FFD700"
 								/>
 							))}
 							<Text style={styles.ratingText}>
-								{productItem.rating.toFixed(1)} ({productItem.reviews || 0}{" "}
-								reviews)
+								{product.rating.toFixed(1)} ({product.reviews || 0} reviews)
 							</Text>
 						</View>
 					)}
 
-					{/* {productItem.inStock ? (
+					{/* {product.inStock ? (
 						<View style={styles.stockContainer}>
 							<View style={styles.stockDot} />
 							<Text style={styles.inStockText}>In Stock</Text>
@@ -89,15 +121,15 @@ const ProductDetailsScreen = () => {
 					<View style={styles.divider} />
 
 					<Text style={styles.sectionTitle}>Description</Text>
-					<Text style={styles.description}>{productItem.description}</Text>
+					<Text style={styles.description}>{product.description}</Text>
 
 					<View style={styles.divider} />
 
-					{productItem.features && (
+					{product.features && (
 						<>
 							<Text style={styles.sectionTitle}>Features</Text>
 							<View style={styles.featuresContainer}>
-								{productItem.features.map((feature, index) => (
+								{product.features.map((feature, index) => (
 									<View key={index} style={styles.featureItem}>
 										<Ionicons
 											name="checkmark-circle"
