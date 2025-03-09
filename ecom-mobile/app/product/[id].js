@@ -14,12 +14,14 @@ import { Ionicons } from "@expo/vector-icons";
 import products from "../../assets/products.json";
 import { fetchProductById } from "../../services/product";
 import { useQuery } from "@tanstack/react-query";
+import { useCart } from "../../store/cartStore";
 
 const ProductDetailsScreen = () => {
 	const { id } = useLocalSearchParams();
 	const router = useRouter();
 
-	console.log("id", id);
+	const addProduct = useCart((state) => state.addProduct);
+	const cartItems = useCart((state) => state.items);
 
 	const {
 		data: product,
@@ -30,8 +32,6 @@ const ProductDetailsScreen = () => {
 		queryFn: () => fetchProductById(Number(id)),
 		staleTime: 1000 * 60 * 5, // Cache data for 5 minutes
 	});
-
-	console.log("prod", product);
 
 	if (isLoading) {
 		return (
@@ -48,39 +48,18 @@ const ProductDetailsScreen = () => {
 			</View>
 		);
 	}
-	// const product = products.find((prod) => prod.id === Number(id));
 
-	// if (!product) {
-	// 	return (
-	// 		<SafeAreaView style={styles.errorContainer}>
-	// 			<Text style={styles.errorText}>Product not found</Text>
-	// 			<TouchableOpacity
-	// 				style={styles.backButton}
-	// 				onPress={() => router.back()}
-	// 			>
-	// 				<Text style={styles.backButtonText}>Go Back</Text>
-	// 			</TouchableOpacity>
-	// 		</SafeAreaView>
-	// 	);
-	// }
+	const addItemsToCart = () => {
+		console.log("hello", product);
+
+		addProduct(product);
+	};
+
+	console.log(cartItems);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
 			<StatusBar barStyle="dark-content" />
-
-			{/* <View style={styles.header}>
-				<TouchableOpacity style={styles.backIcon} onPress={() => router.back()}>
-					<Ionicons name="arrow-back" size={24} color="#333" />
-				</TouchableOpacity>
-				<View style={styles.headerRight}>
-					<TouchableOpacity style={styles.iconButton}>
-						<Ionicons name="heart-outline" size={24} color="#333" />
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.iconButton}>
-						<Ionicons name="share-outline" size={24} color="#333" />
-					</TouchableOpacity>
-				</View>
-			</View> */}
 
 			<ScrollView style={styles.scrollView}>
 				<View style={styles.imageContainer}>
@@ -148,7 +127,7 @@ const ProductDetailsScreen = () => {
 			<View style={styles.footer}>
 				<TouchableOpacity
 					style={styles.cartButton}
-					onPress={() => console.log("Added to Cart")}
+					onPress={() => addItemsToCart()}
 				>
 					<Ionicons name="cart" size={20} color="#fff" />
 					<Text style={styles.cartButtonText}>Add to Cart</Text>
